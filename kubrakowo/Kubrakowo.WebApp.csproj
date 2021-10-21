@@ -6,4 +6,9 @@
     <RootNamespace>Kubrakowo.WebApp</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Azurite" Version="2.6.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
 </Project>

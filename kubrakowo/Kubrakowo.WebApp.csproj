@@ -4,10 +4,14 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Kubrakowo.WebApp</AssemblyName>
     <RootNamespace>Kubrakowo.WebApp</RootNamespace>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <UserSecretsId>8c3e127b-4314-4f38-89c4-412731d59caa</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Azurite" Version="2.6.5" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 

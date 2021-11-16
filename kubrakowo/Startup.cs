@@ -1,5 +1,6 @@
 using kubrakowo.Data;
 using Kubrakowo.WebApp.Domain;
+using Kubrakowo.WebApp.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -42,6 +43,8 @@ namespace kubrakowo
 
             //TODO: Verify what is better - transient/scoped 
             services.AddTransient<Context>(p => p.GetRequiredService<IDbContextFactory<Context>>().CreateDbContext());
+
+            services.AddScoped<IFileStorageService, FileStorageService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

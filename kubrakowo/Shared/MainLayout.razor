@@ -1,16 +1,11 @@
 ﻿@namespace Kubrakowo.WebApp.Shared
 @inherits LayoutComponentBase
-
-    <RadzenDialog />
-    <RadzenNotification />
-    <div class="sidebar">
+<div>
+    <div class="navigation">
         <NavMenu />
     </div>
-
-    <div class="main">
-
-        <div class="content px-4">
-            @Body
-            <RadzenButton Text="asd"></RadzenButton>
-        </div>
+    <div class="page-content px-4">
+        @Body
+        <RadzenButton Text="asd"></RadzenButton>
     </div>
+</div>

@@ -1,8 +1,10 @@
 using kubrakowo.Data;
+using Kubrakowo.WebApp.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,6 +31,17 @@ namespace kubrakowo
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
+            services.AddDbContextFactory<Context>(
+                options =>
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("DbConnection"));
+#if DEBUG
+                    options.EnableSensitiveDataLogging();
+#endif
+                });
+
+            //TODO: Verify what is better - transient/scoped 
+            services.AddTransient<Context>(p => p.GetRequiredService<IDbContextFactory<Context>>().CreateDbContext());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

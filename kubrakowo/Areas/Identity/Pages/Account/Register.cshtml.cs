@@ -50,13 +50,21 @@ namespace Kubrakowo.WebApp.Areas.Identity.Pages.Account
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Hasło")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
+            [Display(Name = "Potwierdź hasło")]
             [Compare("Password", ErrorMessage = "Hasła nie pasują do sieb")]
             public string ConfirmPassword { get; set; }
+
+            [Display(Name = "Imię (nieobowiązkowe)")]
+            public string Name { get; set; }
+            [Display(Name = "Nazwisko (nieobowiązkowe)")]
+            public string Surname { get; set; }
+
+            [Display(Name = "Numer telefonu (nieobowiązkowe)")]
+            public string PhoneNumber { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)

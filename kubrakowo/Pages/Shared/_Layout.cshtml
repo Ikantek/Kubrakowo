@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/css/menu-styling/responsive.css">
     <link rel="stylesheet" href="/css/menu-styling/custom.css">
 </head>
-<body style="display: flex;">
+<body>
     <div style="flex-grow: 1;">
         <header class="top-navbar">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -42,14 +42,17 @@
                     </div>
                 </div>
             </nav>
-        </header>
-
-        <div class="container">
-            <main role="main" class="pb-3">
-                @RenderBody()
-            </main>
-        </div>
-        <div class="footer-std" style="display: flex; position: absolute; bottom: 0; width:100%; justify-content: center; align-items: center;">
+        </header>        
+        @RenderBody()
+        <div class="footer-std" style="
+                display: flex;
+                height: 100px;
+                background-color: white;
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                justify-content: center;
+                align-items: center;">
             <div>
                 <div class="container">
                     <div class="footer-distributed">
@@ -74,5 +77,15 @@
     <script src="~/Identity/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Identity/js/site.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
+    <style>
+        body {
+            display: flex;
+            background: url("http://127.0.0.1:10000/devstoreaccount1/shared/background-image.jpg") no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;            
+        }
+    </style>
 </body>
 </html>

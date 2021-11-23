@@ -14,5 +14,9 @@
   {
     "outputFile": "Shared/Footer.razor.css",
     "inputFile": "Shared/Footer.razor.scss"
+  },
+  {
+    "outputFile": "Pages/AddOffer/AddOffer.razor.css",
+    "inputFile": "Pages/AddOffer/AddOffer.razor.scss"
   }
 ]

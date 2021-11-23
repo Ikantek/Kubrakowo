@@ -45,6 +45,23 @@ namespace kubrakowo
             services.AddTransient<Context>(p => p.GetRequiredService<IDbContextFactory<Context>>().CreateDbContext());
 
             services.AddScoped<IFileStorageService, FileStorageService>();
+            ConfigureAuthentication(services);
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.ConsentCookie.IsEssential = true;//<-- NOTE THIS
+                options.CheckConsentNeeded = context => false;
+            });
+        }
+
+        private static void ConfigureAuthentication(IServiceCollection services)
+        {
+            services.ConfigureApplicationCookie(opts =>
+            {
+                opts.LoginPath = $"/Identity/Account/Login";
+                opts.LogoutPath = $"/Identity/Account/Logout";
+                opts.ExpireTimeSpan = TimeSpan.FromSeconds(3000);
+                opts.SlidingExpiration = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

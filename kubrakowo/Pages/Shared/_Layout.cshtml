@@ -10,45 +10,66 @@
     <title>@ViewData["Title"] - Kubrakowo.WebApp</title>
     <link rel="stylesheet" href="~/Identity/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/Identity/css/site.css" />
+    <link rel="stylesheet" href="/css/menu-styling/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="/css/menu-styling/versions.css">
+    <link rel="stylesheet" href="/css/menu-styling/responsive.css">
+    <link rel="stylesheet" href="/css/menu-styling/custom.css">
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-light navbar-toggleable-sm bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" href="~/">Kubrakowo.WebApp</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    @{
-                        var result = Engine.FindView(ViewContext, "_LoginPartial", isMainPage: false);
-                    }
-                    @if (result.Success)
-                    {
-                        await Html.RenderPartialAsync("_LoginPartial");
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("The default Identity UI layout requires a partial view '_LoginPartial' " +
-                            "usually located at '/Pages/_LoginPartial' or at '/Views/Shared/_LoginPartial' to work. Based on your configuration " +
-                            $"we have looked at it in the following locations: {System.Environment.NewLine}{string.Join(System.Environment.NewLine, result.SearchedLocations)}.");
-                    }
+<body style="display: flex;">
+    <div style="flex-grow: 1;">
+        <header class="top-navbar">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="http://127.0.0.1:10000/devstoreaccount1/shared/kubrakowo-logo.png" style="max-height:100px" />
+                    </a>
+                    <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbars-rs-food" aria-controls="navbars-rs-food" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="icon-bar top-bar"></span>
+                        <span class="icon-bar middle-bar"></span>
+                        <span class="icon-bar bottom-bar"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbars-rs-food">
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item"><a class="nav-link" href="/">Strona główna</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/lista-ofert">Lista ofert</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/dodaj-oferte">Dodaj ofertę</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/o-nas">O nas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/kontakt">Kontakt</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Identity/Account/Login">Zaloguj</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Identity/Account/Register">Zarejestruj</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+        <div class="footer-std" style="display: flex; position: absolute; bottom: 0; width:100%; justify-content: center; align-items: center;">
+            <div>
+                <div class="container">
+                    <div class="footer-distributed">
+                        <div class="footer-left">
+                            <p class="footer-links">
+                                <a class="nav-link" href="">Strona główna</a>
+                                <a class="nav-link" href="/lista-ofert">Lista ofert</a>
+                                <a class="nav-link" href="/dodaj-oferte">Dodaj ofertę</a>
+                                <a class="nav-link" href="/o-nas">O nas</a>
+                                <a class="nav-link" href="/kontakt">Kontakt</a>
+                                <a class="nav-link" href="/Identity/Account/Login">Zaloguj</a>
+                                <a class="nav-link" href="/Identity/Account/Register">Zarejestruj</a>
+                            </p>
+                            <p class="asd">All Rights Reserved. &copy; @DateTime.UtcNow.Year <a href="#">Kubrakowo</a></p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-    <footer class="footer border-top text-muted">
-        <div class="container">
-            &copy; 2021 - Kubrakowo.WebApp - <a asp-area="" asp-page="Privacy">Privacy</a>
         </div>
-    </footer>
+    </div>
     <script src="~/Identity/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/Identity/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Identity/js/site.js" asp-append-version="true"></script>

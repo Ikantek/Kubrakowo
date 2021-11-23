@@ -1,31 +1,50 @@
 ﻿@using Infrastructure
+@using System.Security.Claims
+@using System.Web 
 @inject IFileStorageService _fileStorageService
- 
-<nav id="mainNav" class="navbar navbar-expand-lg navbar-light fixed-top">
-    <div class="container">
-        <a  class="navbar-brand" href="/">
-            <img src="@logo" style="max-height: 65px;"/>
-        </a>
-        <div class="navbar-collapse collapse" style="">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a  class="nav-link" href="/">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a routerlink="/about" class="nav-link" href="/about">About</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
 
-@code { 
+<header class="top-navbar">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="@logo" style="max-height:100px" />
+            </a>
+            <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbars-rs-food" aria-controls="navbars-rs-food" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="icon-bar top-bar"></span>
+                <span class="icon-bar middle-bar"></span>
+                <span class="icon-bar bottom-bar"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbars-rs-food">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="">Strona główna</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lista-ofert">Lista ofert</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/dodaj-oferte">Dodaj ofertę</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/o-nas">O nas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/kontakt">Kontakt</a></li>
+                    @if (!user.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/Identity/Account/Login">Zaloguj</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Identity/Account/Register">Zarejestruj</a></li>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/kontakt">Panel Klienta</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+@code {
     string logo;
+    ClaimsPrincipal user; 
 
     protected async override Task OnInitializedAsync()
     {
-        //var logoImage = await _fileStorageService.GetFile("shared", "kubrakowo-logo.png");
-        //logo = String.Format("data:image/gif;base64,{0}", Convert.ToBase64String(logoImage));
+        var authstate = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
+        user = authstate.User;
         logo = await _fileStorageService.GetUrlAsync("shared", "kubrakowo-logo.png");
     }
 }

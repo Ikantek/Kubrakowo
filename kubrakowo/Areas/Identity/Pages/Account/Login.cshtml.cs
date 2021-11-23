@@ -82,7 +82,9 @@ namespace Kubrakowo.WebApp.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User logged in.");
+                    var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+                    var userPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
+                    var identity = userPrincipal.Identity;
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

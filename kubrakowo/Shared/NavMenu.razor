@@ -22,7 +22,7 @@
                     <li class="nav-item"><a class="nav-link" href="/dodaj-oferte">Dodaj ofertę</a></li>
                     <li class="nav-item"><a class="nav-link" href="/o-nas">O nas</a></li>
                     <li class="nav-item"><a class="nav-link" href="/kontakt">Kontakt</a></li>
-                    @if (!user.Identity.IsAuthenticated)
+                    @if (!user?.Identity?.IsAuthenticated ?? true)
                     {
                         <li class="nav-item"><a class="nav-link" href="/Identity/Account/Login">Zaloguj</a></li>
                         <li class="nav-item"><a class="nav-link" href="/Identity/Account/Register">Zarejestruj</a></li>
@@ -39,12 +39,13 @@
 
 @code {
     string logo;
-    ClaimsPrincipal user; 
+    ClaimsPrincipal user;
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
-        var authstate = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
-        user = authstate.User;
+        user = (await AuthStat).User;
         logo = await _fileStorageService.GetUrlAsync("shared", "kubrakowo-logo.png");
     }
 }

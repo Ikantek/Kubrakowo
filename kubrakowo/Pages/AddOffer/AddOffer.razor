@@ -1,13 +1,101 @@
-﻿@page "/"
+﻿@page "/dodaj-oferte"
 @using Kubrakowo.WebApp.Domain
 @using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
 @using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions 
 @inject IDbContextFactory<Context> dbContext
 
-<div>
-    
+<div class="wrapper-main">
+    <div class="form-container">
+        <div class="main-title">
+            <span class="main-title-wrapper">Dodawanie oferty</span>
+        </div>
+        <RadzenTemplateForm TItem="Offer" Data="@offer" Submit="@OnSubmit" InvalidSubmit=@OnInvalidSubmit>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Tytuł:
+                </div>
+                <RadzenTextBox style="display: block" Name="Title" @bind-Value=@offer.Title Placeholder="Tytuł oferty" />
+                <RadzenLengthValidator Component="Title" Min="3" Text="Tytuł musi mieć przynajmniej 3 znaki." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Title" Max="50" Text="Tytuł musi mieć maksymalnie 50 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Opis oferty:
+                </div>
+                <RadzenTextArea Cols="97" Rows="6" Placeholder="Opis oferty" style="display: block" Name="Description" @bind-Value=@offer.Description />
+                <RadzenLengthValidator Component="Description" Min="3" Text="Opis musi mieć minimum 20 znaków." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Description" Max="10" Text="Opis musi mieć maksymalnie 500 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper container">
+                <div class="row">
+                    <div class="col-6 left-side">
+                        <div class="text-label">
+                            Kategoria:
+                        </div>
+                        <RadzenDropDown @bind-Value="offer.Category" AllowClear="false" Placeholder="Wybierz kategorię" Data="@_categories" style="width: 90%;" TextProperty="Kategoria" ValueProperty="Category" Name="Category">
+                            <Template Context="category">
+                                @(EnumExtensions.GetDisplayName(category))
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-6 right-side">
+                        <div class="text-label">
+                            Płeć:
+                        </div>
+                        <RadzenDropDown @bind-Value="offer.Gender" AllowClear="false" Placeholder="Wybierz płeć" Data="@_categories" style="width: 90%;" TextProperty="Płeć" ValueProperty="Gender" Name="Gender">
+                            <Template Context="gender">
+                                @(EnumExtensions.GetDisplayName(gender))
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
+                </div>
+            </div>
+
+            <div class="item-wrapper" style="display: flex; align-items: center;">
+                <RadzenNumeric  style="width: 40%;" Name="Amount" Value="0" />
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; margin-bottom: 20px;">
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" ButtonType="ButtonType.Submit" Icon="save" Text="Zapisz" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Style="margin-left: 10px;" Icon="cancel" Text="Wyczyść" Click="@Cancel" />
+                </div>
+            </div>
+        </RadzenTemplateForm>
+    </div>
 </div>
 
 @code {
-    Offer offer;
+    Offer offer = new Offer() {
+        Category = CategoryEnum.Shoes,
+        Gender = GenderEnum.Male        
+    };
+    Context _context;
+
+    private IEnumerable<CategoryEnum> _categories = Enum.GetValues(typeof(CategoryEnum)).Cast<CategoryEnum>();
+    private IEnumerable<GenderEnum> _genders = Enum.GetValues(typeof(GenderEnum)).Cast<GenderEnum>();
+
+    protected override void OnInitialized()
+    {
+        _context = dbContext.CreateDbContext();
+        var users = _context.Users.AsQueryable().ToList();
+        var xd = "test";
+    }
+
+    void OnSubmit(Offer offer)
+    {
+
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+
+    }
+
+    void Cancel()
+    {
+        offer = new Offer();
+    }
 } 

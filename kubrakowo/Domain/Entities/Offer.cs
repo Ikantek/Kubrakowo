@@ -11,6 +11,7 @@ namespace Kubrakowo.WebApp.Domain.Entities
         public long Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public int Price { get; set; }
         public GenderEnum Gender { get; set; }
         public CategoryEnum Category { get; set; }
         public DateTime CreateDate { get; set; }

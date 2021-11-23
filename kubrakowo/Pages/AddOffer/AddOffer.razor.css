@@ -1,1 +1,21 @@
-﻿
+﻿.wrapper-main {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+  .wrapper-main .form-container {
+    background: white;
+    width: 40%;
+    min-height: 500px; }
+    .wrapper-main .form-container .item-wrapper {
+      padding: 0 10px;
+      margin: 20px 0; }
+      .wrapper-main .form-container .item-wrapper ::deep input {
+        width: 100%; }
+
+.main-title {
+  display: flex;
+  justify-content: center; }
+  .main-title .main-title-wrapper {
+    font-size: 40px;
+    margin: 20px; }

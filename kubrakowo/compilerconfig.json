@@ -18,5 +18,9 @@
   {
     "outputFile": "Pages/AddOffer/AddOffer.razor.css",
     "inputFile": "Pages/AddOffer/AddOffer.razor.scss"
+  },
+  {
+    "outputFile": "Pages/OfferList/OfferList.razor.css",
+    "inputFile": "Pages/OfferList/OfferList.razor.scss"
   }
 ]

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Radzen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +47,7 @@ namespace kubrakowo
 
             services.AddScoped<IFileStorageService, FileStorageService>();
             ConfigureAuthentication(services);
+            services.AddScoped<NotificationService>();
             services.Configure<CookiePolicyOptions>(options =>
             {
                 options.ConsentCookie.IsEssential = true;//<-- NOTE THIS

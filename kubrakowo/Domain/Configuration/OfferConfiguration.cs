@@ -18,7 +18,7 @@ namespace Kubrakowo.WebApp.Domain.Configuration
             builder
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
-                .HasForeignKey(x => x.CreatedById);
+                .HasForeignKey(x => x.CreatedById);            
         }
     }
 }

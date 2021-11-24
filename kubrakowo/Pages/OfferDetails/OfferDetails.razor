@@ -1,0 +1,33 @@
+﻿@page "/szczegoly/{id}"
+@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using System.IO
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NotificationService NotificationService
+
+<div class="offer-wrapper" style="background-color: white;">
+    <div style="font-size: 100px;">OfferDetails - @Id</div>
+</div>
+
+
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    public Offer Offer;
+    public string offerImagesLinks { get; set; }
+    Context _context;
+
+    protected override void OnInitialized()
+    {
+        _context = dbContext.CreateDbContext();
+        var users = _context.Users.AsQueryable().ToList();
+        Offer = _context.Offers.FirstOrDefault(x => x.Id == long.Parse(Id));
+    }
+}

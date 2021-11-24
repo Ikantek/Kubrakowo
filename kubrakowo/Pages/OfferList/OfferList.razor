@@ -1,0 +1,163 @@
+﻿@page "/lista-ofert"
+@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using System.IO
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NavigationManager UriHelper
+
+<div class="wrapper-list row">
+    <div class="col-2" style="background-color: #fafafa; border-radius:25px;">
+        <div style="display: flex; justify-content: center; font-size: 25px;">Filtrowanie</div>
+        <div class="filter-item">
+            <div class="label">
+                Wyszukiwane słowo:
+            </div>
+            <RadzenTextBox style="display: block; width: 100%;" Name="Phrase" @bind-Value=@(FilterQuery.Phrase) Placeholder="Wpisz..." />
+        </div>
+        <div class="filter-item">
+            <div class="label">
+                Kategoria:
+            </div>
+            <RadzenDropDown @bind-Value="FilterQuery.Category" AllowClear="true" Placeholder="Wybierz kategorię" Data="@_categories" style="width: 100%;" TextProperty="Kategoria" ValueProperty="Category" Name="Category">
+                <Template Context="category">
+                    @(EnumExtensions.GetDisplayName(category))
+                </Template>
+            </RadzenDropDown>
+        </div>
+        <div class="filter-item">
+            <div class="label">
+                Płeć:
+            </div>
+            <RadzenDropDown @bind-Value="FilterQuery.Gender" AllowClear="true" Placeholder="Wybierz płeć" Data="@_genders" style="width: 100%;" TextProperty="Płeć" ValueProperty="Gender" Name="Gender">
+                <Template Context="Gender">
+                    @(EnumExtensions.GetDisplayName(Gender))
+                </Template>
+            </RadzenDropDown>
+        </div>
+        <div class="filter-item">
+            <div class="label">
+                Rozmiar:
+            </div>
+            <RadzenDropDown @bind-Value="FilterQuery.Size" AllowClear="true" Placeholder="Wybierz rozmiar" Data="@_categories" style="width: 100%;" TextProperty="Rozmiar" ValueProperty="Size" Name="Size">
+                <Template Context="Size">
+                    @(EnumExtensions.GetDisplayName(Size))
+                </Template>
+            </RadzenDropDown>
+        </div>
+    </div>
+    <div class="col-1"></div>
+    <div class="col-9" style="background-color: #fafafa;">
+        <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" Count="count" PageSize="10" PageNumbersCount="10" PageChanged="@PageChanged" />
+        <RadzenDataList WrapItems="true" AllowPaging="false" Data="@offersPaged" TItem="OfferWhole">
+            <Template Context="offer">
+                <RadzenCard Style="min-height: 300px; min-width: 300px;" @onclick="@((args) => GoToOffer(offer))">
+                    <div style="display: flex; justify-content: center; font-size: 20px; font-weight: 700;">@offer.Offer.Title</div>
+                    @if (offer.imageLink != null)
+                    {
+                        <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                            <div style="width:200px; height: 200px;">
+                                <div style="display: flex; justify-content: center; align-items:center; height: 100%;">
+                                    <img src="@offer.imageLink" style="max-width: 175px; max-height: 175px;">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                            <div style="width:200px; height: 200px;">
+                                <div class="image-placeholder-icon-container" style="display: flex; justify-content: center; align-items:center; height: 100%;">
+                                    <RadzenIcon Icon="photo_camera" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="footer-wrapper d-flex" style="align-items: center;">
+                        @switch (offer.Offer.Gender)
+                        {
+                            case GenderEnum.Male:
+                                <text><RadzenIcon Icon="male" /></text>
+                                break;
+                            case GenderEnum.Female:
+                                <text><RadzenIcon Icon="female" /></text>
+                                break;
+                            case GenderEnum.Kids:
+                                <text><RadzenIcon Icon="child_care" /></text>
+                                break;
+
+                        }
+
+                        <div style="margin-left:auto; font-size:20px; color: red;">
+                            Cena: @offer.Offer.Price.00 zł
+                        </div>
+                    </div>
+                </RadzenCard>
+            </Template>
+        </RadzenDataList>        
+    </div>
+</div>
+
+
+
+@code {
+    Context _context;
+    List<OfferWhole> offers = new List<OfferWhole>();
+    List<OfferWhole> offersPaged = new List<OfferWhole>();
+    Filter FilterQuery = new Filter();
+    private IEnumerable<CategoryEnum> _categories = Enum.GetValues(typeof(CategoryEnum)).Cast<CategoryEnum>();
+    private IEnumerable<GenderEnum> _genders = Enum.GetValues(typeof(GenderEnum)).Cast<GenderEnum>();
+    private IEnumerable<SizeEnum> _sizes = Enum.GetValues(typeof(SizeEnum)).Cast<SizeEnum>();
+
+    string pagingSummaryFormat = "Strona {0} z {1} (wszystkich ofert: {2})";
+    int count;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _context = dbContext.CreateDbContext();
+        var offersObject = _context.Offers.OrderByDescending(x => x.CreateDate).ToList();
+        count = offersObject.Count();
+
+        foreach (var offer in offersObject)
+        {
+            var image = _context.Images.FirstOrDefault(x => x.OfferId == offer.Id);
+            var imageLink = image != null ? await _fileStorageService.GetUrlAsync($"offer-{offer.Id}", image.ImageName) : null;
+            offers.Add(new OfferWhole()
+            {
+                Offer = offer,
+                imageLink = imageLink
+            });
+        }
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 10 });
+    }
+
+    public class OfferWhole
+    {
+        public Offer Offer { get; set; }
+        public string imageLink { get; set; }
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        offersPaged = offers.Skip(args.Skip).Take(args.Top).ToList();
+    }
+
+    void GoToOffer(OfferWhole offer)
+    {
+        UriHelper.NavigateTo($"szczegoly/{offer.Offer.Id}");
+    }
+
+    public class Filter {
+        public string Phrase { get; set; }
+        public GenderEnum Gender { get; set; }
+        public CategoryEnum Category { get; set; }
+        public SizeEnum Size { get; set; }
+        public int PriceFrom { get; set; }
+        public int PriceTo { get; set; }
+        public bool ContainsPhoto { get; set; }
+    }
+}

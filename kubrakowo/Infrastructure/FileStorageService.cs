@@ -56,7 +56,7 @@ namespace Kubrakowo.WebApp.Infrastructure
         {
             var blobContainerClient = new BlobContainerClient(_connectionString, containerName);
             await blobContainerClient.CreateIfNotExistsAsync();
-            await blobContainerClient.SetAccessPolicyAsync(PublicAccessType.Blob);
+            await blobContainerClient.SetAccessPolicyAsync(PublicAccessType.BlobContainer);
         }
     }
 }

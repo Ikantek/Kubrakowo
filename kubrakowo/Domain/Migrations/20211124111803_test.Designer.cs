@@ -4,38 +4,22 @@ using Kubrakowo.WebApp.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Kubrakowo.WebApp.Domain.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20211124111803_test")]
+    partial class test
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.12")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-            modelBuilder.Entity("Kubrakowo.WebApp.Domain.Entities.Image", b =>
-                {
-                    b.Property<long>("ImageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("ImageName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("OfferId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ImageId");
-
-                    b.ToTable("Images");
-                });
 
             modelBuilder.Entity("Kubrakowo.WebApp.Domain.Entities.Offer", b =>
                 {
@@ -66,14 +50,8 @@ namespace Kubrakowo.WebApp.Domain.Migrations
                     b.Property<byte>("Gender")
                         .HasColumnType("tinyint");
 
-                    b.Property<string>("Localization")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Price")
                         .HasColumnType("int");
-
-                    b.Property<byte>("Size")
-                        .HasColumnType("tinyint");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");

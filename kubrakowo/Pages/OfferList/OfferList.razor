@@ -11,7 +11,7 @@
 @inject NavigationManager UriHelper
 
 <div class="wrapper-list row">
-    <div class="col-2" style="background-color: #fafafa; border-radius:25px;">
+    <div class="col-2" style="background-color: #fafafa; border-radius:25px; height:535px;">
         <div style="display: flex; justify-content: center; font-size: 25px;">Filtrowanie</div>
         <div class="filter-item">
             <div class="label">
@@ -48,6 +48,31 @@
                     @(EnumExtensions.GetDisplayName(Size))
                 </Template>
             </RadzenDropDown>
+        </div>
+        <div class="filter-item row">
+            <div class="left-side col-5">
+                <div class="text-label">
+                    Cena od:
+                </div>
+                <div>
+                    <RadzenNumeric Name="Price" @bind-Value="FilterQuery.PriceFrom" TValue="int?" />
+                </div>
+            </div>
+            <div class="separator col-1" style="padding: 32px 8px;">-</div>
+            <div class="right-side col-5">
+                <div class="text-label">
+                    Cena do:
+                </div>
+                <div>
+                    <RadzenNumeric Name="Price" @bind-Value="FilterQuery.PriceTo" TValue="int?" />
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; margin-bottom: 20px;">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Wyszukaj" Click="@FilterOffers"/>
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Style="margin-left: 10px;" Text="Wyczyść" Click="@Cancel" />
+            </div>
         </div>
     </div>
     <div class="col-1"></div>
@@ -98,7 +123,7 @@
                     </div>
                 </RadzenCard>
             </Template>
-        </RadzenDataList>        
+        </RadzenDataList>
     </div>
 </div>
 
@@ -144,6 +169,7 @@
     void PageChanged(PagerEventArgs args)
     {
         offersPaged = offers.Skip(args.Skip).Take(args.Top).ToList();
+
     }
 
     void GoToOffer(OfferWhole offer)
@@ -151,13 +177,58 @@
         UriHelper.NavigateTo($"szczegoly/{offer.Offer.Id}");
     }
 
-    public class Filter {
+    async Task FilterOffers()
+    {
+        offers = new List<OfferWhole>();
+        var offersQuery = _context.Offers.OrderByDescending(x => x.CreateDate).AsQueryable();
+
+        if (!string.IsNullOrEmpty(FilterQuery.Phrase))
+            offersQuery = offersQuery.Where(x =>
+                    x.Title.Contains(FilterQuery.Phrase)
+                    || x.Description.Contains(FilterQuery.Phrase)
+                    || x.Localization.Contains(FilterQuery.Phrase));
+        if (FilterQuery.Gender != default)
+            offersQuery = offersQuery.Where(x => x.Gender == FilterQuery.Gender);
+        if (FilterQuery.Category != default)
+            offersQuery = offersQuery.Where(x => x.Category == FilterQuery.Category);
+        if (FilterQuery.Size != default)
+            offersQuery = offersQuery.Where(x => x.Size == FilterQuery.Size);
+        if (FilterQuery.PriceFrom != null && FilterQuery.PriceTo != null)
+            offersQuery = offersQuery.Where(x => x.Price >= FilterQuery.PriceFrom
+                    && x.Price <= FilterQuery.PriceTo);
+        else if (FilterQuery.PriceFrom != null)
+            offersQuery = offersQuery.Where(x => x.Price >= FilterQuery.PriceFrom);
+        else if (FilterQuery.PriceTo != null)
+            offersQuery = offersQuery.Where(x => x.Price <= FilterQuery.PriceTo);
+
+        var offersObject = await offersQuery.ToListAsync();
+        foreach (var offer in offersObject)
+        {
+            var image = _context.Images.FirstOrDefault(x => x.OfferId == offer.Id);
+            var imageLink = image != null ? await _fileStorageService.GetUrlAsync($"offer-{offer.Id}", image.ImageName) : null;
+            offers.Add(new OfferWhole()
+            {
+                Offer = offer,
+                imageLink = imageLink
+            });
+        }
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 10 });
+    }
+
+    async Task Cancel()
+    {
+        FilterQuery = new Filter();
+        await FilterOffers();
+    }
+
+    public class Filter
+    {
         public string Phrase { get; set; }
         public GenderEnum Gender { get; set; }
         public CategoryEnum Category { get; set; }
         public SizeEnum Size { get; set; }
-        public int PriceFrom { get; set; }
-        public int PriceTo { get; set; }
+        public int? PriceFrom { get; set; }
+        public int? PriceTo { get; set; }
         public bool ContainsPhoto { get; set; }
     }
 }

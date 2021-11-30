@@ -22,5 +22,13 @@
   {
     "outputFile": "Pages/OfferList/OfferList.razor.css",
     "inputFile": "Pages/OfferList/OfferList.razor.scss"
+  },
+  {
+    "outputFile": "Pages/OfferDetails/OfferDetails.razor.css",
+    "inputFile": "Pages/OfferDetails/OfferDetails.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Profile/Profile.razor.css",
+    "inputFile": "Pages/Profile/Profile.razor.scss"
   }
 ]

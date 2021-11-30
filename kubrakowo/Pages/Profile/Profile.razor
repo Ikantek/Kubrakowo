@@ -1,0 +1,90 @@
+﻿@page "/panel-klienta"
+@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using System.IO
+@using System.Security.Claims
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+
+<div class="row">
+    <div class="col-2" style="background-color: #fafafa; border-radius:25px; height:435px;">
+        <div class="personal-data-component">
+
+            <div class="profile-image-container" style="margin-top: 20px">
+                <img src="https://i.pinimg.com/originals/ae/ec/c2/aeecc22a67dac7987a80ac0724658493.jpg">
+            </div>
+            <div class="name-surname-container">
+                @user?.Name @user?.Surname
+            </div>
+
+        </div>
+        <hr />
+        <div class="items-container">
+            @*<div class="item-wrapper">
+                <div class="item-label">
+                    Ilość ofert:
+                </div>
+                <div class="item-value">
+                    @offerCount
+                </div>
+            </div>*@
+            <div class="item-wrapper">
+                <div class="item-label label-wrapper">
+                    <RadzenIcon Icon="phone" /><span style="margin-left: 5px;">Telefon:</span>
+                </div>
+                <div class="item-value">
+                    @(!string.IsNullOrEmpty(user?.PhoneNumber)
+                                ? user?.PhoneNumber
+                                : "-")
+                </div>
+            </div>
+            <div class="item-wrapper">
+                <div class="item-label label-wrapper">
+                    <RadzenIcon Icon="email" /><span style="margin-left: 5px;">Email:</span>
+                </div>
+                <div class="item-value">
+                    @(user?.Email)
+                </div>
+            </div>
+        </div>
+        <hr />
+    </div>
+    <div class="col-1"></div>
+    <div class="col-9">
+        <RadzenTabs RenderMode="TabRenderMode.Server" >
+            <Tabs>
+                <RadzenTabsItem Text="Twoje oferty">
+                    <UserOffers></UserOffers>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Ustawienia">
+                    <Settings></Settings>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </div>
+</div>
+
+@code{ 
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
+    Context _context;
+    private User user;
+    private int offerCount = 0;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _context = dbContext.CreateDbContext();
+        var authstate = await AuthStat;
+        var userId = authstate.GetUserId();
+        user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        await InvokeAsync(StateHasChanged);
+        offerCount = _context.Offers.Count(x => x.CreatedById == userId);
+    }
+}

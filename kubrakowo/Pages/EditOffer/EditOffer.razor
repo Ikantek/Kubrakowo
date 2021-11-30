@@ -1,4 +1,4 @@
-﻿@page "/dodaj-oferte"
+﻿@page "/edytuj-oferte/{id}"
 @using Kubrakowo.WebApp.Domain
 @using Kubrakowo.WebApp.Infrastructure
 @using Kubrakowo.WebApp.Domain.Entities
@@ -131,6 +131,8 @@
 </div>
 
 @code {
+    [Parameter]
+    public string Id { get; set; }
     string pagingSummaryFormat = "Strona {0} z {1} (wszystkich {2} zdjęć)";
     int count = 0;
     Offer offer = new Offer()
@@ -145,7 +147,7 @@
     protected Task<AuthenticationState> AuthStat { get; set; }
 
     private readonly Dictionary<string, object> _inputAttributes = new Dictionary<string, object>
-    {
+{
             { "style", "display:none" },
             { "id", "file-uploader" }
     };
@@ -166,16 +168,13 @@
             NavManager.NavigateTo("/Identity/Account/Login");
         }
         _context = dbContext.CreateDbContext();
+        offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
         var users = _context.Users.AsQueryable().ToList();
     }
 
     async Task OnSubmit(Offer offer)
     {
-        var authState = await AuthStat;
-        offer.CreateDate = DateTime.UtcNow;
-        offer.CreatedById = authState.GetUserId();
         offer.EditDate = DateTime.UtcNow;
-        _context.Offers.Add(offer);
         _context.SaveChanges();
         NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Oferta została dodana", Duration = 10000 });
         for (var i = 0; i < images.Count(); i++)
@@ -189,7 +188,7 @@
         }
         _context.SaveChanges();
 
-        Cancel();
+        await Cancel();
     }
 
     void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
@@ -197,14 +196,9 @@
 
     }
 
-    void Cancel()
+    async Task Cancel()
     {
-        offer = new Offer()
-        {
-            Category = CategoryEnum.Shoes,
-            Gender = GenderEnum.Male,
-            Size = SizeEnum.M
-        };
+        offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
         images = new List<Stream>();
         imagesLinks = new List<string>();
         imagesLinksList = new List<string>();

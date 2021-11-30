@@ -48,6 +48,7 @@ namespace kubrakowo
             services.AddScoped<IFileStorageService, FileStorageService>();
             ConfigureAuthentication(services);
             services.AddScoped<NotificationService>();
+            services.AddScoped<DialogService>();
             services.Configure<CookiePolicyOptions>(options =>
             {
                 options.ConsentCookie.IsEssential = true;//<-- NOTE THIS

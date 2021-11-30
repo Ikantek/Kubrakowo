@@ -1,0 +1,58 @@
+﻿.personal-data-component {
+    height: 225px;
+    width: 12vw;
+    margin-right: 20px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+
+    .profile-image-container {
+        display: flex;
+        justify-content: center;
+        height: 80%;
+
+        img {
+            max-width: 90%;
+            border-radius: 50%;
+        }
+    }
+
+    .name-surname-container {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 1.25rem;
+    }
+    
+}
+
+.items-container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+
+    .item-wrapper {
+        width: 240px;
+        display: flex;
+        margin-top: 15px;
+
+        .item-label {
+            font-size: 15px;
+        }
+
+        .item-value {
+            margin-left: auto;
+            font-size: 16px;
+        }
+    }
+}
+
+.label-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .icon-wrapper {
+        margin-right: 3px;
+    }
+}

@@ -10,5 +10,8 @@ namespace Kubrakowo.WebApp.Domain.Entities
     {
         public string Name { get; set; }
         public string Surname { get; set; }
+        public string ContactEmail { get; set; }
+        public bool IsEmailEnabled { get; set; }
+
     }
 }

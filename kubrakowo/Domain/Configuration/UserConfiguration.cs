@@ -12,7 +12,9 @@ namespace Kubrakowo.WebApp.Domain.Configuration
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-
+            builder
+                .Property(x => x.IsEmailEnabled)
+                .HasDefaultValue(true);    
         }
     }
 }

@@ -1,0 +1,164 @@
+﻿@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using Kubrakowo.WebApp.Pages.Profile.EditPassword
+@using Newtonsoft.Json
+@using System.Text
+@using Kubrakowo.WebApp.Domain.Entities 
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject NavigationManager NavManager
+@inject IHttpClientFactory _clientFactory;
+
+<div class="wrapper-main">
+    <div class="form-container">
+        <div class="main-title">
+            <span class="main-title-wrapper">Edycja profilu użytkownika</span>
+        </div>
+        <RadzenTemplateForm TItem="UserEditModel" Data="@model" Submit="@OnSubmit" InvalidSubmit=@OnInvalidSubmit>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Email kontaktowy:
+                </div>
+                <RadzenTextBox Placeholder="Email kontaktowy" AutoComplete="false" style="display: block" Name="ContactEmail" @bind-Value=@model.ContactEmail />
+                <RadzenLengthValidator Component="ContactEmail" Min="8" Text="Telefon musi mieć minimum 8 znaków." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="ContactEmail" Max="15" Text="Telefon nie może mieć więcej niż 15 znaków." Popup=false Style="position: absolute" />
+                <RadzenEmailValidator Component="ContactEmail" Text="Niepoprawny format maila" Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Hasło:
+                </div>
+                <RadzenPassword Placeholder="Hasło" AutoComplete="false" style="display: block" Name="Password" @bind-Value=@model.Password />
+                <RadzenLengthValidator Component="Password" Max="25" Text="Hasło musi mieć maksymalnie 25 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Potwierdź hasło:
+                </div>
+                <RadzenPassword Placeholder="Hasło" AutoComplete="false" style="display: block" Name="ConfirmPassword" @bind-Value=@model.ConfirmPassword />
+                <RadzenLengthValidator Component="ConfirmPassword" Max="25" Text="Hasło musi mieć maksymalnie 25 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Imię:
+                </div>
+                <RadzenTextBox style="display: block" AutoComplete="false" Name="Name" @bind-Value=@model.Name Placeholder="Imię" />
+                <RadzenLengthValidator Component="Name" Min="3" Text="Imię musi mieć przynajmniej 3 znaki." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Name" Max="20" Text="Imię musi mieć maksymalnie 20 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Nazwisko:
+                </div>
+                <RadzenTextBox style="display: block" AutoComplete="false" Name="Surname" @bind-Value=@model.Surname Placeholder="Nazwisko" />
+                <RadzenLengthValidator Component="Surname" Min="3" Text="Nazwisko musi mieć przynajmniej 3 znaki." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Surname" Max="20" Text="Nazwisko musi mieć maksymalnie 20 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Numer telefonu:
+                </div>
+                <RadzenTextBox Placeholder="Numer telefonu" AutoComplete="false" style="display: block" Name="PhoneNumber" @bind-Value=@model.PhoneNumber />
+                <RadzenLengthValidator Component="PhoneNumber" Min="8" Text="Telefon musi mieć minimum 8 znaków." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="PhoneNumber" Max="15" Text="Telefon nie może mieć więcej niż 15 znaków." Popup=false Style="position: absolute" />
+                <RadzenRegexValidator Component="PhoneNumber" Pattern="^[0-9]+$" Text="Telefon może składać się tylko z cyfr" Popup=false Style="position: absolute" />
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; margin-bottom: 20px;">
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" ButtonType="ButtonType.Submit" Icon="save" Text="Zapisz" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Style="margin-left: 10px;" Icon="cancel" Text="Wyczyść" Click="@Cancel" />
+                </div>
+            </div>
+        </RadzenTemplateForm>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
+    Context _context;
+
+    UserEditModel model = new UserEditModel();
+    UserEditModel snapshot = new UserEditModel();
+    User User = new User();
+    int userId = 0;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await AuthStat;
+        userId = authState.GetUserId();
+        _context = dbContext.CreateDbContext();
+        User = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+        snapshot.Name = User.Name;
+        snapshot.Surname = User.Surname;
+        snapshot.PhoneNumber = User.PhoneNumber;
+        snapshot.ContactEmail = User.Email;
+        model = JsonConvert.DeserializeObject<UserEditModel>(JsonConvert.SerializeObject(snapshot));
+    }
+
+    public class UserEditModel
+    {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
+        public string PhoneNumber { get; set; }
+        public string ContactEmail { get; set; }
+    }
+
+    private async Task OnSubmit()
+    {
+        if (model.Password != model.ConfirmPassword)
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Hasła muszą być takie same.", Duration = 10000 });
+        else if (!string.IsNullOrEmpty(model.Password) && model.Password.Length < 6)
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Hasło musi miec conajmniej 6 znaków", Duration = 10000 });
+        else
+        {
+            if (model.ContactEmail != snapshot.ContactEmail)
+                User.ContactEmail = model.ContactEmail;
+            if (model.PhoneNumber != snapshot.PhoneNumber)
+                User.PhoneNumber = model.PhoneNumber;
+            if (model.Name != snapshot.Name)
+                User.Name = model.Name;
+            if (model.Surname != snapshot.Surname)
+                User.Surname = model.Surname;
+            await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(model.Password))
+            {
+                string url = $"{NavManager.BaseUri}admin/user/edit";
+                var authState = await AuthStat;
+                var userId = authState.GetUserId();
+                var getModel = new PasswordEditModel() { Id = userId, Password = model.Password };
+                var client = _clientFactory.CreateClient();
+                var jsonContent = JsonConvert.SerializeObject(getModel);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                await client.PostAsync(url, content);
+            }
+            NotificationService.Notify(new NotificationMessage() { Summary = "Profil został zmieniony", Severity = NotificationSeverity.Success, Duration = 10000 });
+            await Cancel();
+        }
+    }
+
+    private async Task OnInvalidSubmit()
+    {
+
+    }
+
+    private async Task Cancel()
+    {
+        User = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        snapshot.Name = User.Name;
+        snapshot.Surname = User.Surname;
+        snapshot.PhoneNumber = User.PhoneNumber;
+        snapshot.ContactEmail = User.Email;
+        model = JsonConvert.DeserializeObject<UserEditModel>(JsonConvert.SerializeObject(snapshot));
+    }
+
+}

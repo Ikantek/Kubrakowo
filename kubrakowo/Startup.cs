@@ -1,11 +1,16 @@
 using kubrakowo.Data;
+using Kubrakowo.WebApp.Domain;
+using Kubrakowo.WebApp.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Radzen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +33,40 @@ namespace kubrakowo
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddHttpClient();
             services.AddSingleton<WeatherForecastService>();
+            services.AddDbContextFactory<Context>(
+                options =>
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("DbConnection"));
+#if DEBUG
+                    options.EnableSensitiveDataLogging();
+#endif
+                });
+
+            //TODO: Verify what is better - transient/scoped 
+            services.AddTransient<Context>(p => p.GetRequiredService<IDbContextFactory<Context>>().CreateDbContext());
+
+            services.AddScoped<IFileStorageService, FileStorageService>();
+            ConfigureAuthentication(services);
+            services.AddScoped<NotificationService>();
+            services.AddScoped<DialogService>();
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.ConsentCookie.IsEssential = true;//<-- NOTE THIS
+                options.CheckConsentNeeded = context => false;
+            });
+        }
+
+        private static void ConfigureAuthentication(IServiceCollection services)
+        {
+            services.ConfigureApplicationCookie(opts =>
+            {
+                opts.LoginPath = $"/Identity/Account/Login";
+                opts.LogoutPath = $"/Identity/Account/Logout";
+                opts.ExpireTimeSpan = TimeSpan.FromSeconds(3000);
+                opts.SlidingExpiration = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +87,8 @@ namespace kubrakowo
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,15 +1,17 @@
-﻿@inherits LayoutComponentBase
+﻿@namespace Kubrakowo.WebApp.Shared
+@inherits LayoutComponentBase
 
-<div class="sidebar">
+<div class="navigation">
     <NavMenu />
 </div>
-
-<div class="main">
-    <div class="top-row px-4">
-        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-    </div>
-
-    <div class="content px-4">
+<RadzenNotification></RadzenNotification>
+<RadzenDialog />
+<div class="page-content px-4">
+    <div class="page-gdt">
         @Body
     </div>
 </div>
+<div class="footer-std">
+    <Footer />
+</div>
+

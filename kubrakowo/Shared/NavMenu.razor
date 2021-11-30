@@ -1,37 +1,55 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">kubrakowo</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
+﻿@using Infrastructure
+@using System.Security.Claims
+@using System.Web
+@inject IFileStorageService _fileStorageService
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </li>
-    </ul>
-</div>
+<header class="top-navbar">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="@logo" style="max-height:100px" />
+            </a>
+            <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbars-rs-food" aria-controls="navbars-rs-food" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="icon-bar top-bar"></span>
+                <span class="icon-bar middle-bar"></span>
+                <span class="icon-bar bottom-bar"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbars-rs-food">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="">Strona główna</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lista-ofert">Lista ofert</a></li>
+                    @if (user?.Identity?.IsAuthenticated ?? false)
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/dodaj-oferte">Dodaj ofertę</a></li>
+                    }
+                    <li class="nav-item"><a class="nav-link" href="/o-nas">O nas</a></li>
+                    @*<li class="nav-item"><a class="nav-link" href="/kontakt">Kontakt</a></li>*@
+                    @if (!user?.Identity?.IsAuthenticated ?? true)
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/Identity/Account/Login">Zaloguj</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Identity/Account/Register">Zarejestruj</a></li>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/panel-klienta">Panel Klienta</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Identity/Account/Logout">Wyloguj</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
 
 @code {
-    private bool collapseNavMenu = true;
+    string logo;
+    ClaimsPrincipal user;
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    protected async override Task OnInitializedAsync()
     {
-        collapseNavMenu = !collapseNavMenu;
+        user = (await AuthStat).User;
+        logo = await _fileStorageService.GetUrlAsync("shared", "kubrakowo-logo.png");
     }
 }

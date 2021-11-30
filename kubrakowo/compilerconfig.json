@@ -1,0 +1,50 @@
+﻿[
+  {
+    "outputFile": "Shared/NavMenu.razor.css",
+    "inputFile": "Shared/NavMenu.razor.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/_variables.css",
+    "inputFile": "wwwroot/css/_variables.scss"
+  },
+  {
+    "outputFile": "Shared/MainLayout.razor.css",
+    "inputFile": "Shared/MainLayout.razor.scss"
+  },
+  {
+    "outputFile": "Shared/Footer.razor.css",
+    "inputFile": "Shared/Footer.razor.scss"
+  },
+  {
+    "outputFile": "Pages/AddOffer/AddOffer.razor.css",
+    "inputFile": "Pages/AddOffer/AddOffer.razor.scss"
+  },
+  {
+    "outputFile": "Pages/OfferList/OfferList.razor.css",
+    "inputFile": "Pages/OfferList/OfferList.razor.scss"
+  },
+  {
+    "outputFile": "Pages/OfferDetails/OfferDetails.razor.css",
+    "inputFile": "Pages/OfferDetails/OfferDetails.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Profile/Profile.razor.css",
+    "inputFile": "Pages/Profile/Profile.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Profile/UserOffers.razor.css",
+    "inputFile": "Pages/Profile/UserOffers.razor.scss"
+  },
+  {
+    "outputFile": "Pages/EditOffer/EditOffer.razor.css",
+    "inputFile": "Pages/EditOffer/EditOffer.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Profile/Settings.razor.css",
+    "inputFile": "Pages/Profile/Settings.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Index.razor.css",
+    "inputFile": "Pages/Index.razor.scss"
+  }
+]

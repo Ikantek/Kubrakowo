@@ -1,0 +1,58 @@
+version: '3.4'
+
+services:
+    app:
+        image: ${DOCKER_REGISTRY-}kubrakowowebapp
+        container_name: kubrakowo.webapp
+        build:
+          context: .
+          dockerfile: kubrakowo/Dockerfile
+        expose:
+          - 80
+          - 443
+        ports:
+          - 5000:80
+          - 5001:443
+        depends_on:
+          - sql
+          - storage
+        networks:
+          - kubrakowo-net
+
+    sql:
+        image: mcr.microsoft.com/mssql/server
+        container_name: kubrakowo.sql
+        restart: always
+        environment:
+          - ACCEPT_EULA=Y
+          - SA_PASSWORD=Password
+        expose:
+          - 1433
+        ports:
+          - 7433:1433
+        volumes:
+          - sql_data:/var/opt/mssql
+        networks:
+          - kubrakowo-net
+
+    storage:
+        image: mcr.microsoft.com/azure-storage/azurite
+        container_name: kubrakowo.storage    
+        ports:
+            - 10000:10000    
+            - 10001:10001    
+            - 10002:10002    
+        command: "azurite -l /data --blobHost 0.0.0.0 --queueHost 0.0.0.0 --loose"
+        volumes:
+            - storage_data:/data
+        networks:
+            - kubrakowo-net
+
+networks:
+  kubrakowo-net:
+    name: kubrakowo-net
+
+# use docker volume to persist ES data outside of a container.
+volumes:
+  sql_data:
+  storage_data:

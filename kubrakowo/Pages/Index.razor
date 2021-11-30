@@ -1,7 +1,53 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+@using System.Security.Claims
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject NavigationManager NavManager
 
-Welcome to your new app.
+<div class="banner">
+    <div class="container">
+        <div class="row">
+            <div class="col-12" style="display: flex; justify-content: space-evenly;">
+                <div class="caption">
+                    <h2>Chcesz kupić ubranie?</h2>
+                    <div class="line-dec"></div>
+                    <p>
+                        Interesują cię ubrania w promocyjnych cenach? A może, po prostu nie masz czasu chodzić po sklepach?
+                        <br><br>Nie zachowuj wiedzy o naszej stronie jedynie dla siebie! Powiedz o naszych usługach swoim przyjaciołom!
+                    </p>
+                    <div class="main-button">
+                        <a href="/lista-ofert">Sprawdź listę ofert!</a>
+                    </div>
+                </div>
+                <div class="caption">
+                    <h2>Za dużo ubrań zalega w szafie?</h2>
+                    <div class="line-dec"></div>
+                    <p>
+                        Nic nie szkodzi! Za niewielką opłatą możesz wystawić na sprzedaż swoje ubrania! Nie tylko zarobisz, ale i oczyścisz mieszkanie z niepotrzebnej odzieży.
+                        <br><br>Nie czekaj dłużej i skorzystaj z naszego prostego formularza!
+                    </p>
+                    <div class="main-button">
+                        @if (user?.Identity?.IsAuthenticated ?? false)
+                        {
+                            <a href="/dodaj-oferte">Dodaj swoją ofertę!</a>
+                        }
+                        else
+                        {
+                            <a href="/Identity/Account/Login">Zaloguj się aby dodać ofertę!</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
+    ClaimsPrincipal user;
+    protected async override Task OnInitializedAsync()
+    {
+        user = (await AuthStat).User;
+    }
+} 

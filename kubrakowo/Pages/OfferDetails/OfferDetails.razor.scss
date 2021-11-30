@@ -1,0 +1,45 @@
+﻿.image-placeholder-icon-container {
+    font-size: 6rem;
+    color: lightslategrey;
+}
+
+.buttons-container {
+    flex-direction: column;
+    align-items: center;
+
+    ::deep.rz-button{
+        width: 225px;
+    }
+}
+
+.items-container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+
+    .item-wrapper {
+        width: 240px;
+        display: flex;
+        margin-top: 15px;
+
+        .item-label {
+            font-size: 15px;
+        }
+
+        .item-value {
+            margin-left: auto;
+            font-size: 16px;
+        }
+    }
+}
+
+.label-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .icon-wrapper{
+        margin-right:3px;
+    }
+}

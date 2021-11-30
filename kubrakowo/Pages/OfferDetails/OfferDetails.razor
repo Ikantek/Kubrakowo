@@ -1,0 +1,215 @@
+﻿@page "/szczegoly/{id}"
+@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using System.IO
+@using System.Security.Claims
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@implements IDisposable
+
+<div class="offer-wrapper row">
+    <div class="col-1"></div>
+    <div class="col-8 images">
+        @if (imagesLinks.Count != 0)
+        {
+            <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                <div style="width:800px; height: 800px; display: flex; justify-content: center; align-items: center;">
+                    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@imagesLinksList" TItem="string" Style="width: 100%;">
+                        <Template Context="link">
+                            <RadzenCard Style="width:750px; height: 750px; display: flex; justify-content: center; align-items: center;">
+                                <div style="width:700px; height: 700px;">
+                                    <div style="display: flex; justify-content: center; align-items:center; height: 100%;">
+
+                                        <img src="@link" style="max-width: 700px; max-height: 700px;">
+                                    </div>
+                                </div>
+                            </RadzenCard>
+                        </Template>
+                    </RadzenDataList>
+                </div>
+            </div>
+            <div style="margin: 10px 0; display: flex; justify-content: center;">
+                <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" Count="count" PageSize="1" PageNumbersCount="1" PageChanged="@PageChanged" Style="width: 750px;" />
+            </div>
+        }
+        else
+        {
+            <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                <div style="width:800px; height: 800px; display: flex; justify-content: center; align-items: center;">
+                    <RadzenCard Style="width:750px; height: 750px; display: flex; justify-content: center; align-items: center;">
+                        <div style="width:700px; height: 700px;">
+                            <div class="image-placeholder-icon-container" style="display: flex; justify-content: center; align-items:center; height: 100%;">
+                                <RadzenIcon Icon="photo_camera" />
+                            </div>
+                        </div>
+                    </RadzenCard>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-3 sidebar" style=" background-color: white; height: 700px; border: solid 2px #479cc8; border-radius: 13px;">
+        <div class="title-section">
+            <div style="display: flex; justify-content: center; align-items: center; word-break: break-word; text-align: center; font-size: 23px;">
+                @Offer.Title
+            </div>
+            <hr />
+            <div style="font-size:20px; color: red; display: flex; justify-content: center;">
+                Cena: @Offer.Price.00 zł
+            </div>
+            <hr />
+            <div class="buttons-container d-flex justify-content-center">
+                <RadzenButton Click=@(args => ShowDescription()) Text="Wyświetl opis" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Secondary" />
+                @if (user?.Identity?.IsAuthenticated ?? false)
+                {
+                    <div style="margin-top:20px;">
+                        <RadzenButton Click=@(args => ShowMessageDialog()) Icon="email" Text="Napisz wiadomość" ButtonStyle="ButtonStyle.Warning" />
+                    </div>
+                }
+            </div>
+            <hr />
+            <div class="items-container">
+                <div class="item-wrapper">
+                    <div class="item-label">
+                        ROZMIAR:
+                    </div>
+                    <div class="item-value">
+                        @(EnumExtensions.GetDisplayName(Offer.Size))
+                    </div>
+                </div>
+                <div class="item-wrapper">
+                    <div class="item-label">
+                        KATEGORIA:
+                    </div>
+                    <div class="item-value">
+                        @(EnumExtensions.GetDisplayName(Offer.Category))
+                    </div>
+                </div>
+                <div class="item-wrapper">
+                    <div class="item-label">
+                        PŁEĆ:
+                    </div>
+                    <div class="item-value">
+                        @(EnumExtensions.GetDisplayName(Offer.Gender))
+                    </div>
+                </div>
+                <div class="item-wrapper">
+                    <div class="item-label">
+                        LOKALIZACJA:
+                    </div>
+                    <div class="item-value">
+                        @Offer.Localization
+                    </div>
+                </div>
+                <div class="item-wrapper">
+                    <div class="item-label">
+                        DATA DODANIA:
+                    </div>
+                    <div class="item-value">
+                        @Offer.CreateDate.ToShortDateString()
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="items-container">
+
+                <div class="item-wrapper">
+                    <div class="item-label label-wrapper">
+                        <RadzenIcon Icon="phone" /><span style="margin-left: 5px;">Telefon:</span>
+                    </div>
+                    <div class="item-value">
+                        @if (user?.Identity?.IsAuthenticated ?? false)
+                        {
+                            @(!string.IsNullOrEmpty(OfferOwner?.PhoneNumber)
+                                ? OfferOwner?.PhoneNumber
+                                : "-")
+                        }
+                        else
+                        {
+                            @("zaloguj aby wyświetlić")
+                        }
+                    </div>
+                </div>
+                <div class="item-wrapper">
+                    <div class="item-label label-wrapper">
+                        <RadzenIcon Icon="mail" /><span style="margin-left: 5px;">Email:</span>
+                    </div>
+                    <div class="item-value">
+                        @if (user?.Identity?.IsAuthenticated ?? false)
+                        {
+                            @OfferOwner.Email
+                        }
+                        else
+                        {
+                            @("zaloguj aby wyświetlić")
+                        }
+                    </div>
+                </div>
+            </div>
+            <hr />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    ClaimsPrincipal user;
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
+    public Offer Offer = new Offer() { Gender = GenderEnum.Female, Size = SizeEnum.M, Category = CategoryEnum.Blouse };
+    public List<string> imagesLinks { get; set; } = new List<string>();
+    public List<string> imagesLinksList { get; set; } = new List<string>();
+    string pagingSummaryFormat = "Strona {0} z {1} (wszystkich zdjęć - {2})";
+    User OfferOwner = new User();
+    public int count;
+    Context _context;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await AuthStat).User;
+        _context = dbContext.CreateDbContext();
+        Offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
+        OfferOwner = await _context.Users.FirstOrDefaultAsync(x => x.Id == Offer.CreatedById);
+        var images = await _context.Images.Where(x => x.OfferId == Offer.Id).ToListAsync();
+        foreach (var image in images)
+        {
+            imagesLinks.Add(await _fileStorageService.GetUrlAsync($"offer-{Offer.Id.ToString()}", image.ImageName));
+        }
+
+        count = imagesLinks.Count();
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        imagesLinksList = imagesLinks.Skip(args.Skip).Take(args.Top).ToList();
+    }
+
+    async Task ShowDescription()
+    {
+        var result = await DialogService.OpenAsync("Opis oferty", ds =>
+    @<div>
+        <div class="row">
+            <div class="col-md-12" style="font-size: 17px; display: flex; justify-content: center; ">
+                <div>@Offer.Description</div>
+            </div>
+        </div>
+    </div>);
+}
+
+async Task ShowMessageDialog()
+{
+
+}
+
+public void Dispose()
+{
+}
+}

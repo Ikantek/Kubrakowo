@@ -1,0 +1,142 @@
+﻿@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using System.IO
+@using System.Security.Claims
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject NavigationManager UriHelper
+@implements IDisposable
+
+<RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" Count="count" PageSize="10" PageNumbersCount="10" PageChanged="@PageChanged" />
+<RadzenDataList WrapItems="true" AllowPaging="false" Data="@offersPaged" TItem="OfferWhole">
+    <Template Context="offer">
+        <RadzenCard Style="min-height: 300px; min-width: 300px;" @onclick="@((args) => GoToOffer(offer))">
+            <div style="display: flex; justify-content: center; font-size: 20px; font-weight: 700;">@offer.Offer.Title</div>
+            @if (offer.imageLink != null)
+            {
+                <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                    <div style="width:200px; height: 200px;">
+                        <div style="display: flex; justify-content: center; align-items:center; height: 100%;">
+                            <img src="@offer.imageLink" style="max-width: 175px; max-height: 175px;">
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                    <div style="width:200px; height: 200px;">
+                        <div class="image-placeholder-icon-container" style="display: flex; justify-content: center; align-items:center; height: 100%;">
+                            <RadzenIcon Icon="photo_camera" />
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="footer-wrapper d-flex" style="align-items: center;">
+
+                <div style="margin-left:auto; font-size:20px; color: red;">
+                    <RadzenButton Click=@(args => EditOffer(offer)) @onclick:stopPropagation="true" Icon="edit" ButtonStyle="ButtonStyle.Warning" />
+                    <RadzenButton Click=@(args => DeleteOffer(offer)) @onclick:stopPropagation="true" Icon="delete" ButtonStyle="ButtonStyle.Danger" />
+                </div>
+            </div>
+        </RadzenCard>
+    </Template>
+</RadzenDataList>
+
+@code {
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
+    Context _context;
+    public class OfferWhole
+    {
+        public Offer Offer { get; set; }
+        public string imageLink { get; set; }
+    }
+
+    string pagingSummaryFormat = "Strona {0} z {1} (wszystkich ofert: {2})";
+    int count;
+    List<OfferWhole> offers = new List<OfferWhole>();
+    List<OfferWhole> offersPaged = new List<OfferWhole>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authstate = await AuthStat;
+        var userId = authstate.GetUserId();
+        _context = dbContext.CreateDbContext();
+        var offersObject = _context.Offers.Where(x => x.CreatedById == userId).OrderByDescending(x => x.CreateDate).ToList();
+        count = offersObject.Count();
+        foreach (var offer in offersObject)
+        {
+            var image = _context.Images.FirstOrDefault(x => x.OfferId == offer.Id);
+            var imageLink = image != null ? await _fileStorageService.GetUrlAsync($"offer-{offer.Id}", image.ImageName) : null;
+            offers.Add(new OfferWhole()
+            {
+                Offer = offer,
+                imageLink = imageLink
+            });
+        }
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 10 });
+    }
+
+    void GoToOffer(OfferWhole offer)
+    {
+        UriHelper.NavigateTo($"szczegoly/{offer.Offer.Id}");
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        offersPaged = offers.Skip(args.Skip).Take(args.Top).ToList();
+    }
+
+    async Task DeleteOffer(OfferWhole offer)
+    {
+        var delete = await DialogService.Confirm("Ta akcja jest nieodwracalana. Czy napewno chcesz usunąć ofertę?",
+                                "Usuwanie oferty",
+                                new ConfirmOptions() { OkButtonText = "Tak", CancelButtonText = "Nie" });
+
+        if (delete ?? false)
+        {
+            var authstate = await AuthStat;
+            var userId = authstate.GetUserId();
+            var offerToRemove = await _context.Offers.FirstOrDefaultAsync(x => x.Id == offer.Offer.Id);
+            _context.Offers.Remove(offerToRemove);
+            await _context.SaveChangesAsync();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Oferta została usunięta", Duration = 10000 });
+            var offersObject = _context.Offers.Where(x => x.CreatedById == userId).OrderByDescending(x => x.CreateDate).ToList();
+            count = offersObject.Count();
+            offers = new List<OfferWhole>();
+            foreach (var offerObj in offersObject)
+            {
+                var image = _context.Images.FirstOrDefault(x => x.OfferId == offerObj.Id);
+                var imageLink = image != null ? await _fileStorageService.GetUrlAsync($"offer-{offerObj.Id}", image.ImageName) : null;
+                offers.Add(new OfferWhole()
+                {
+                    Offer = offerObj,
+                    imageLink = imageLink
+                });
+            }
+            PageChanged(new PagerEventArgs() { Skip = 0, Top = 10 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Oferta nadal istnieje w systemie", Duration = 10000 });
+        }
+    }
+
+    public void EditOffer(OfferWhole offer)
+    {
+        UriHelper.NavigateTo($"/edytuj-oferte/{offer.Offer.Id}");
+    }
+
+    public void Dispose()
+    {
+
+    }
+}

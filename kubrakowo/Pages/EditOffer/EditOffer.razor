@@ -1,0 +1,290 @@
+﻿@page "/edytuj-oferte/{id}"
+@using Kubrakowo.WebApp.Domain
+@using Kubrakowo.WebApp.Infrastructure
+@using Kubrakowo.WebApp.Domain.Entities
+@using Kubrakowo.WebApp.Domain.Entities.Enums
+@using Microsoft.EntityFrameworkCore
+@using Kubrakowo.WebApp.Extensions
+@using Microsoft.AspNetCore.Identity
+@using System.IO
+@using System.Security.Claims
+@inject IDbContextFactory<Context> dbContext
+@inject IFileStorageService _fileStorageService
+@inject NotificationService NotificationService
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject NavigationManager NavManager
+
+<div class="wrapper-main">
+    <div class="form-container">
+        <div class="main-title">
+            <span class="main-title-wrapper">Edycja oferty</span>
+        </div>
+        <RadzenTemplateForm TItem="Offer" Data="@offer" Submit="@OnSubmit" InvalidSubmit=@OnInvalidSubmit>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Tytuł:
+                </div>
+                <RadzenTextBox style="display: block" Name="Title" @bind-Value=@offer.Title Placeholder="Tytuł oferty" />
+                <RadzenLengthValidator Component="Title" Min="3" Text="Tytuł musi mieć przynajmniej 3 znaki." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Title" Max="50" Text="Tytuł musi mieć maksymalnie 50 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Opis oferty:
+                </div>
+                <RadzenTextArea Cols="90" Rows="6" Placeholder="Opis oferty" style="display: block" Name="Description" @bind-Value=@offer.Description />
+                <RadzenLengthValidator Component="Description" Min="20" Text="Opis musi mieć minimum 20 znaków." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Description" Max="500" Text="Opis musi mieć maksymalnie 500 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper">
+                <div class="text-label">
+                    Opis oferty:
+                </div>
+                <RadzenTextBox Placeholder="Lokalizacja" style="display: block" Name="Localization" @bind-Value=@offer.Localization />
+                <RadzenLengthValidator Component="Localization" Min="3" Text="Opis musi mieć minimum 20 znaków." Popup=false Style="position: absolute" />
+                <RadzenLengthValidator Component="Localization" Max="50" Text="Opis musi mieć maksymalnie 500 znaków." Popup=false Style="position: absolute" />
+            </div>
+            <div class="item-wrapper container">
+                <div class="row">
+                    <div class="col-6 left-side">
+                        <div class="text-label">
+                            Kategoria:
+                        </div>
+                        <RadzenDropDown @bind-Value="offer.Category" AllowClear="false" Placeholder="Wybierz kategorię" Data="@_categories" style="width: 90%;" TextProperty="Kategoria" ValueProperty="Category" Name="Category">
+                            <Template Context="category">
+                                @(EnumExtensions.GetDisplayName(category))
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
+                    <div class="col-6 right-side">
+                        <div class="text-label">
+                            Płeć:
+                        </div>
+                        <RadzenDropDown @bind-Value="offer.Gender" AllowClear="false" Placeholder="Wybierz płeć" Data="@_genders" style="width: 90%;" TextProperty="Płeć" ValueProperty="Gender" Name="Gender">
+                            <Template Context="gender">
+                                @(EnumExtensions.GetDisplayName(gender))
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
+                </div>
+            </div>
+
+            <div class="item-wrapper container">
+                <div class="row">
+                    <div class="col-6 left-side">
+                        <div class="text-label">
+                            Cena:
+                        </div>
+                        <div>
+                            <RadzenNumeric Name="Price" @bind-Value="offer.Price" />
+                            <RadzenNumericRangeValidator Component="Price" Min="1" Text="Wartość nie może być zerem" Popup=false Style="display: block" />
+                        </div>
+                    </div>
+                    <div class="col-6 right-side">
+                        <div class="text-label">
+                            Rozmiar:
+                        </div>
+                        <RadzenDropDown @bind-Value="offer.Size" AllowClear="false" Placeholder="Wybierz rozmiar" Data="@_sizes" style="width: 90%;" TextProperty="Rozmiar" ValueProperty="Size" Name="Size">
+                            <Template Context="size">
+                                @(EnumExtensions.GetDisplayName(size))
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: right; margin-right: 10px;">
+                <button type="button" class="button-18" onclick="document.getElementById('file-uploader').click()">
+                    Dodaj zdjęcia
+                </button>
+                <InputFile OnChange="@SelectFilesToUpload" @attributes="_inputAttributes" multiple />
+            </div>
+
+            @if (imagesLinks.Count != 0)
+            {
+                <div style="display: flex; align-items: center; justify-content:center; width: 100%;">
+                    <div style="width:300px; height: 330px;">
+                        <RadzenDataList WrapItems="true" AllowPaging="false" Data="@imagesLinksList" TItem="string" Style="width: 100%;">
+                            <Template Context="link">
+                                <RadzenCard Style="width:300px; height: 330px;">
+                                    <div style="display: flex; justify-content: center; align-items:center; height: 100%;">
+                                        <img src="@link" style="max-width: 250px; max-height: 250px;">
+                                    </div>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Style="width: 50px; display: flex; margin-left: auto; justify-content: center;" Icon="delete" Click="@(args => DeleteImage(link))" />
+                                </RadzenCard>
+                            </Template>
+                        </RadzenDataList>
+                    </div>
+                </div>
+                <div style="margin: 10px 0;">
+                    <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" Count="count" PageSize="1" PageNumbersCount="10" PageChanged="@PageChanged" />
+                </div>
+            }
+
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; margin-bottom: 20px;">
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" ButtonType="ButtonType.Submit" Icon="save" Text="Zapisz" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Style="margin-left: 10px;" Icon="cancel" Text="Wyczyść" Click="@Cancel" />
+                </div>
+            </div>
+        </RadzenTemplateForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    string pagingSummaryFormat = "Strona {0} z {1} (wszystkich {2} zdjęć)";
+    int count = 0;
+    Offer offer = new Offer()
+    {
+        Category = CategoryEnum.Shoes,
+        Gender = GenderEnum.Male,
+        Size = SizeEnum.M
+    };
+    Context _context;
+    ClaimsPrincipal user;
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthStat { get; set; }
+
+    private readonly Dictionary<string, object> _inputAttributes = new Dictionary<string, object>
+    {
+            { "style", "display:none" },
+            { "id", "file-uploader" }
+    };
+
+    private IEnumerable<CategoryEnum> _categories = Enum.GetValues(typeof(CategoryEnum)).Cast<CategoryEnum>();
+    private IEnumerable<GenderEnum> _genders = Enum.GetValues(typeof(GenderEnum)).Cast<GenderEnum>();
+    private IEnumerable<SizeEnum> _sizes = Enum.GetValues(typeof(SizeEnum)).Cast<SizeEnum>();
+    private List<Stream> imagesToAdd = new List<Stream>();
+    private List<string> imagesLinks = new List<string>();
+    private List<(string Link, long ImageId )> imagesIncluded = new List<(string, long)>();
+    private List<string> imagesLinksList = new List<string>();
+    private List<string> mimeTypes = new List<string>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await AuthStat;
+
+        _context = dbContext.CreateDbContext();
+        offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
+        if (offer.CreatedById != authState.GetUserId())
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Tylko właściciel może edytować oferte", Duration = 10000 });
+            NavManager.NavigateTo("/");
+        }
+        var users = _context.Users.AsQueryable().ToList();
+        var images = await _context.Images.Where(x => x.OfferId == long.Parse(Id)).ToListAsync();
+        foreach (var image in images)
+        {
+            imagesIncluded.Add((await _fileStorageService.GetUrlAsync($"offer-{Id}", image.ImageName), image.ImageId));
+        }
+        foreach (var image in imagesIncluded)
+        {
+            imagesLinks.Add(image.Link);
+        }
+        if (imagesIncluded.Any())
+        {
+            count = imagesIncluded.Count();
+            PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
+        }
+    }
+
+    async Task OnSubmit(Offer offer)
+    {
+        offer.EditDate = DateTime.UtcNow;
+        _context.SaveChanges();
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Oferta została edytowana", Duration = 10000 });
+        for (var i = 0; i < imagesToAdd.Count(); i++)
+        {
+            using var ms = new MemoryStream((int)imagesToAdd[i].Length);
+            await imagesToAdd[i].CopyToAsync(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            var image = new Image() { OfferId = offer.Id, ImageName = Guid.NewGuid().ToString().Substring(0, 15) };
+            await _fileStorageService.Upload(ms, $"offer-{image.OfferId.ToString()}", image.ImageName, mimeTypes.ElementAt(i));
+            _context.Images.Add(image);
+        }
+        _context.SaveChanges();
+
+        NavManager.NavigateTo("/panel-klienta");
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+
+    }
+
+    async Task Cancel()
+    {
+        offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
+        imagesToAdd = new List<Stream>();
+        imagesLinks = new List<string>();
+        imagesIncluded = new List<(string, long)>();
+        var images = await _context.Images.Where(x => x.OfferId == long.Parse(Id)).ToListAsync();
+        foreach (var image in images)
+        {
+            imagesIncluded.Add((await _fileStorageService.GetUrlAsync($"offer-{Id}", image.ImageName), image.ImageId));
+        }
+        foreach (var image in imagesIncluded)
+        {
+            imagesLinks.Add(image.Link);
+        }
+        if (imagesIncluded.Any())
+        {
+            count = imagesIncluded.Count();
+        }
+        imagesLinksList = new List<string>();
+        mimeTypes = new List<string>();
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
+    }
+
+    private async Task SelectFilesToUpload(InputFileChangeEventArgs e)
+    {
+        foreach (var image in e.GetMultipleFiles())
+        {
+            var fileStream = image.OpenReadStream(20971520);
+            imagesToAdd.Add(fileStream);
+        }
+        foreach (var image in e.GetMultipleFiles())
+        {
+            var fileStream = image.OpenReadStream(20971520);
+            using var ms = new MemoryStream((int)fileStream.Length);
+            await fileStream.CopyToAsync(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            mimeTypes.Add(image.ContentType);
+            var guid = Guid.NewGuid().ToString();
+            await _fileStorageService.Upload(ms, "tmp", guid, image.ContentType);
+            imagesLinks.Add(await _fileStorageService.GetUrlAsync("tmp", guid));
+        }
+        count = imagesLinks.Count();
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        imagesLinksList = imagesLinks.Skip(args.Skip).Take(args.Top).ToList();
+    }
+
+    async Task DeleteImage(string imageSource)
+    {
+        bool isIncluded = false;
+        foreach(var image in imagesIncluded)
+        {
+            if (image.Link == imageSource)
+            {
+                var imgToDelete = await _context.Images.FirstOrDefaultAsync(x => x.ImageId == image.ImageId);
+                _context.Images.Remove(imgToDelete);
+                isIncluded = true;
+            }
+        }
+        var imageElement = imagesLinks.IndexOf(imageSource);
+        imagesLinks.RemoveAt(imageElement);
+        if (!isIncluded)
+        {
+            imageElement -= imagesIncluded.Count();
+            imagesToAdd.RemoveAt(imageElement);
+            mimeTypes.RemoveAt(imageElement);
+        }
+        count = imagesLinks.Count();
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
+    }
+} 

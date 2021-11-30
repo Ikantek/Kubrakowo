@@ -17,7 +17,7 @@
 <div class="wrapper-main">
     <div class="form-container">
         <div class="main-title">
-            <span class="main-title-wrapper">Dodawanie oferty</span>
+            <span class="main-title-wrapper">Edycja oferty</span>
         </div>
         <RadzenTemplateForm TItem="Offer" Data="@offer" Submit="@OnSubmit" InvalidSubmit=@OnInvalidSubmit>
             <div class="item-wrapper">
@@ -147,7 +147,7 @@
     protected Task<AuthenticationState> AuthStat { get; set; }
 
     private readonly Dictionary<string, object> _inputAttributes = new Dictionary<string, object>
-{
+    {
             { "style", "display:none" },
             { "id", "file-uploader" }
     };
@@ -155,32 +155,49 @@
     private IEnumerable<CategoryEnum> _categories = Enum.GetValues(typeof(CategoryEnum)).Cast<CategoryEnum>();
     private IEnumerable<GenderEnum> _genders = Enum.GetValues(typeof(GenderEnum)).Cast<GenderEnum>();
     private IEnumerable<SizeEnum> _sizes = Enum.GetValues(typeof(SizeEnum)).Cast<SizeEnum>();
-    private List<Stream> images = new List<Stream>();
+    private List<Stream> imagesToAdd = new List<Stream>();
     private List<string> imagesLinks = new List<string>();
+    private List<(string Link, long ImageId )> imagesIncluded = new List<(string, long)>();
     private List<string> imagesLinksList = new List<string>();
     private List<string> mimeTypes = new List<string>();
 
     protected async override Task OnInitializedAsync()
     {
-        user = (await AuthStat).User;
-        if (!user?.Identity?.IsAuthenticated ?? true)
-        {
-            NavManager.NavigateTo("/Identity/Account/Login");
-        }
+        var authState = await AuthStat;
+
         _context = dbContext.CreateDbContext();
         offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
+        if (offer.CreatedById != authState.GetUserId())
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Tylko właściciel może edytować oferte", Duration = 10000 });
+            NavManager.NavigateTo("/");
+        }
         var users = _context.Users.AsQueryable().ToList();
+        var images = await _context.Images.Where(x => x.OfferId == long.Parse(Id)).ToListAsync();
+        foreach (var image in images)
+        {
+            imagesIncluded.Add((await _fileStorageService.GetUrlAsync($"offer-{Id}", image.ImageName), image.ImageId));
+        }
+        foreach (var image in imagesIncluded)
+        {
+            imagesLinks.Add(image.Link);
+        }
+        if (imagesIncluded.Any())
+        {
+            count = imagesIncluded.Count();
+            PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
+        }
     }
 
     async Task OnSubmit(Offer offer)
     {
         offer.EditDate = DateTime.UtcNow;
         _context.SaveChanges();
-        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Oferta została dodana", Duration = 10000 });
-        for (var i = 0; i < images.Count(); i++)
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Oferta została edytowana", Duration = 10000 });
+        for (var i = 0; i < imagesToAdd.Count(); i++)
         {
-            using var ms = new MemoryStream((int)images[i].Length);
-            await images[i].CopyToAsync(ms);
+            using var ms = new MemoryStream((int)imagesToAdd[i].Length);
+            await imagesToAdd[i].CopyToAsync(ms);
             ms.Seek(0, SeekOrigin.Begin);
             var image = new Image() { OfferId = offer.Id, ImageName = Guid.NewGuid().ToString().Substring(0, 15) };
             await _fileStorageService.Upload(ms, $"offer-{image.OfferId.ToString()}", image.ImageName, mimeTypes.ElementAt(i));
@@ -188,7 +205,7 @@
         }
         _context.SaveChanges();
 
-        await Cancel();
+        NavManager.NavigateTo("/panel-klienta");
     }
 
     void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
@@ -199,10 +216,25 @@
     async Task Cancel()
     {
         offer = await _context.Offers.FirstOrDefaultAsync(x => x.Id == long.Parse(Id));
-        images = new List<Stream>();
+        imagesToAdd = new List<Stream>();
         imagesLinks = new List<string>();
+        imagesIncluded = new List<(string, long)>();
+        var images = await _context.Images.Where(x => x.OfferId == long.Parse(Id)).ToListAsync();
+        foreach (var image in images)
+        {
+            imagesIncluded.Add((await _fileStorageService.GetUrlAsync($"offer-{Id}", image.ImageName), image.ImageId));
+        }
+        foreach (var image in imagesIncluded)
+        {
+            imagesLinks.Add(image.Link);
+        }
+        if (imagesIncluded.Any())
+        {
+            count = imagesIncluded.Count();
+        }
         imagesLinksList = new List<string>();
         mimeTypes = new List<string>();
+        PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
     }
 
     private async Task SelectFilesToUpload(InputFileChangeEventArgs e)
@@ -210,7 +242,7 @@
         foreach (var image in e.GetMultipleFiles())
         {
             var fileStream = image.OpenReadStream(20971520);
-            images.Add(fileStream);
+            imagesToAdd.Add(fileStream);
         }
         foreach (var image in e.GetMultipleFiles())
         {
@@ -232,11 +264,26 @@
         imagesLinksList = imagesLinks.Skip(args.Skip).Take(args.Top).ToList();
     }
 
-    void DeleteImage(string imageSource)
+    async Task DeleteImage(string imageSource)
     {
+        bool isIncluded = false;
+        foreach(var image in imagesIncluded)
+        {
+            if (image.Link == imageSource)
+            {
+                var imgToDelete = await _context.Images.FirstOrDefaultAsync(x => x.ImageId == image.ImageId);
+                _context.Images.Remove(imgToDelete);
+                isIncluded = true;
+            }
+        }
         var imageElement = imagesLinks.IndexOf(imageSource);
         imagesLinks.RemoveAt(imageElement);
-        images.RemoveAt(imageElement);
+        if (!isIncluded)
+        {
+            imageElement -= imagesIncluded.Count();
+            imagesToAdd.RemoveAt(imageElement);
+            mimeTypes.RemoveAt(imageElement);
+        }
         count = imagesLinks.Count();
         PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
     }

@@ -243,6 +243,7 @@
         var imageElement = imagesLinks.IndexOf(imageSource);
         imagesLinks.RemoveAt(imageElement);
         images.RemoveAt(imageElement);
+        mimeTypes.RemoveAt(imageElement);
         count = imagesLinks.Count();
         PageChanged(new PagerEventArgs() { Skip = 0, Top = 1 });
     }

@@ -30,5 +30,21 @@
   {
     "outputFile": "Pages/Profile/Profile.razor.css",
     "inputFile": "Pages/Profile/Profile.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Profile/UserOffers.razor.css",
+    "inputFile": "Pages/Profile/UserOffers.razor.scss"
+  },
+  {
+    "outputFile": "Pages/EditOffer/EditOffer.razor.css",
+    "inputFile": "Pages/EditOffer/EditOffer.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Profile/Settings.razor.css",
+    "inputFile": "Pages/Profile/Settings.razor.scss"
+  },
+  {
+    "outputFile": "Pages/Index.razor.css",
+    "inputFile": "Pages/Index.razor.scss"
   }
 ]

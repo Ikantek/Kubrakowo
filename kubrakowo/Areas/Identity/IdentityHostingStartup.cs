@@ -19,6 +19,8 @@ namespace Kubrakowo.WebApp.Areas.Identity
                 {
                     options.SignIn.RequireConfirmedAccount = false;
                     options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.User.RequireUniqueEmail = true;
                 })
                     .AddRoles<IdentityRole<int>>()
                     .AddEntityFrameworkStores<Context>();

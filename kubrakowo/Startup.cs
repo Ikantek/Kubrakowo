@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ namespace kubrakowo
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddHttpClient();
             services.AddSingleton<WeatherForecastService>();
             services.AddDbContextFactory<Context>(
                 options =>

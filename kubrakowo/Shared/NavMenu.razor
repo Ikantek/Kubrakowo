@@ -7,7 +7,7 @@
 <header class="top-navbar">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="/">
                 <img src="@logo" style="max-height:100px" />
             </a>
             <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbars-rs-food" aria-controls="navbars-rs-food" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,7 +24,7 @@
                         <li class="nav-item"><a class="nav-link" href="/dodaj-oferte">Dodaj ofertę</a></li>
                     }
                     <li class="nav-item"><a class="nav-link" href="/o-nas">O nas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/kontakt">Kontakt</a></li>
+                    @*<li class="nav-item"><a class="nav-link" href="/kontakt">Kontakt</a></li>*@
                     @if (!user?.Identity?.IsAuthenticated ?? true)
                     {
                         <li class="nav-item"><a class="nav-link" href="/Identity/Account/Login">Zaloguj</a></li>

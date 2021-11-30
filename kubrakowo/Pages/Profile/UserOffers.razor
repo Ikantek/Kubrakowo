@@ -42,7 +42,7 @@
             <div class="footer-wrapper d-flex" style="align-items: center;">
 
                 <div style="margin-left:auto; font-size:20px; color: red;">
-                    <RadzenButton Click=@(args => DeleteOffer(offer)) @onclick:stopPropagation="true" Icon="edit" ButtonStyle="ButtonStyle.Warning" />
+                    <RadzenButton Click=@(args => EditOffer(offer)) @onclick:stopPropagation="true" Icon="edit" ButtonStyle="ButtonStyle.Warning" />
                     <RadzenButton Click=@(args => DeleteOffer(offer)) @onclick:stopPropagation="true" Icon="delete" ButtonStyle="ButtonStyle.Danger" />
                 </div>
             </div>
@@ -128,6 +128,11 @@
         {
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Oferta nadal istnieje w systemie", Duration = 10000 });
         }
+    }
+
+    public void EditOffer(OfferWhole offer)
+    {
+        UriHelper.NavigateTo($"/edytuj-oferte/{offer.Offer.Id}");
     }
 
     public void Dispose()
